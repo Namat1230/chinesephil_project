@@ -64,7 +64,7 @@ throne_background = pygame.transform.scale(throne_background, (SCREEN_WIDTH, SCR
 
 # Loading Pixel Font
 smaller_pixel_font = pygame.font.Font("fonts/PressStart2P-Regular.ttf", 11)  
-small_pixel_font = pygame.font.Font("fonts/PressStart2P-Regular.ttf", 14)  
+small_pixel_font = pygame.font.Font("fonts/PressStart2P-Regular.ttf", 15)  
 pixel_font = pygame.font.Font("fonts/PressStart2P-Regular.ttf", 16)  
 large_pixel_font = pygame.font.Font("fonts/PressStart2P-Regular.ttf", 24)  
 larger_pixel_font = pygame.font.Font("fonts/PressStart2P-Regular.ttf", 30)  
@@ -74,19 +74,24 @@ chinese_font = pygame.font.Font("fonts/Kashima Demo 2.ttf", 30)
 STATE_START = 0
 STATE_NAME_INPUT = 1
 STATE_GAMEPLAY = 2
+STATE_GAME_OVER = 3
+STATE_OUT_OF_TURNS = 4
+
 game_state = STATE_START
 
-# NPC Setup
+game_over_reason = ""
+next_npc = False
+
 npcs = [
     {
         "name": "Farmer",
         "sprite_sheet": "npcs/npc_farmer.png",
         "question": "Farmer: A drought has been plaguing our nation, My King! What should we do?",
         "choices": [
-            ("Let nature take its course, the rains shall come.", {"morale": +10, "resources": -10}),  # Laozi
-            ("Organize communal labor to share the burden.", {"resources": -15, "morale": +15}),  # Mengzi
-            ("Punish those who don’t meet the quotas.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("Distribute resources equally.", {"population": +10, "resources": -10}),  # Mozi
+            ("Let nature take its course, the rains shall come.", {"morale": +10, "resources": -10, "population": -10}),          # Laozi's Daoism
+            ("Organize communal labor to share the burden.", {"morale": +10, "population": +10, "resources": -10}), # Mengzi's Confucianism
+            ("Punish those who don’t meet the quotas.", {"resources": +15, "morale": -15, "population": +5}),      # Lord Shang's Legalism
+            ("Distribute resources equally.", {"morale": +15, "population": +10, "resources": -10}),               # Mozi's Mohism
         ],
     },
     {
@@ -94,21 +99,21 @@ npcs = [
         "sprite_sheet": "npcs/npc_priest.png",
         "question": "Priest: The temple is in ruins, and the gods have been quiet since. What should we do?",
         "choices": [
-            ("Embrace simplicity. Worship can happen under the open sky; the divine is all around us.", {"resources": -10, "morale": +15}),  # Laozi
-            ("Rally the community to restore the temple, honoring tradition and showing filial respect to our ancestors.", {"resources": -15, "morale": +15, "population": +10}),  # Mengzi
-            ("Enforce a tithe from every citizen to fund the temple's restoration. Failure to contribute will be punished.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("Build a modest temple with shared labor and equal contributions, prioritizing function over extravagance.", {"resources": -15, "morale": +15, "population": +10}),  # Mozi
+            ("Embrace simplicity. Worship can happen under the open sky.", {"morale": +15, "resources": -10}),      
+            ("Rally the community to restore the temple to honor tradition.", {"morale": +15, "population": +10, "resources": -10}),
+            ("Enforce a tithe from every citizen to fund the temple's restoration.", {"resources": +15, "morale": -15, "population": -10}),
+            ("Build a modest temple with shared labor and equal contributions.", {"morale": +15, "population": +10, "resources": -10}),
         ],
     },
     {
         "name": "Scholar",
         "sprite_sheet": "npcs/npc_scholar.png",
-        "question": "Scholar: Our queen is asking us to design a new curriculum for the kingdom's education. What should we prioritize?",
+        "question": "Scholar: Our queen is asking us to design a new curriculum for the kingdom's curriculum. What should we prioritize?",
         "choices": [
-            ("Teach students to observe nature and embrace simplicity, cultivating inner harmony.", {"morale": +10, "resources": -5}),  # Laozi
-            ("Focus on classical texts and moral philosophy to instill virtuous leadership and filial piety.", {"resources": -5, "morale": +10}),  # Mengzi
-            ("Prioritize practical skills like law, agriculture, and military strategy to strengthen the state.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("Teach universal love, engineering, and logic to foster equality and pragmatic problem-solving.", {"population": +10, "resources": -10}),  # Mozi
+            ("Teach students to observe nature and embrace simplicity.", {"morale": +10}), 
+            ("Focus on classical texts to instill leadership and filial piety.", {"morale": +15, "resources": -5}),
+            ("Prioritize practical skills like law, agriculture, and strength.", {"resources": +15, "morale": -10, "population": +10}),
+            ("Teach universal love, and practice education to foster equality.", {"morale": +10, "population": +10, "resources": -15}),
         ],
     },
     {
@@ -116,10 +121,10 @@ npcs = [
         "sprite_sheet": "npcs/npc_soldier.png",
         "question": "Soldier: The general has tasked you with training new recruits. What should you emphasize?",
         "choices": [
-            ("Teach them to flow like water in combat, valuing strategy and adaptability over brute strength.", {"morale": +10, "resources": -5}),  # Laozi
-            ("Instill loyalty, discipline, and moral purpose, emphasizing the soldier’s role in protecting the people.", {"resources": -10, "morale": +10}),  # Mengzi
-            ("Focus on strict obedience and severe punishment for mistakes to ensure compliance and effectiveness.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("Train all equally, regardless of background, and prioritize defensive tactics to minimize loss of life.", {"population": +10, "resources": -10, "morale": +10}),  # Mozi
+            ("Teach them to flow like water in combat, over using brute strength.", {"morale": +10, "resources": -10, "population": +5}),
+            ("Instill loyalty, discipline, and moral purpose to protect the people.", {"morale": +15, "resources": -10}),
+            ("Focus on strict obedience and severe punishment for mistakes.", {"resources": +10, "morale": -15, "population": -10}),
+            ("Train all equally, and prioritize defensive tactics to minimize loss.", {"morale": +10, "population": +10, "resources": -10}),
         ],
     },
     {
@@ -127,10 +132,10 @@ npcs = [
         "sprite_sheet": "npcs/npc_artisan.png",
         "question": "Artisan: A royal order has been placed for a grand statue. How should you approach the task?",
         "choices": [
-            ("Create something simple and harmonious, reflecting the natural world.", {"morale": +10, "resources": -5}),  # Laozi
-            ("Incorporate traditional symbols that honor the kingdom’s history and values.", {"morale": +10, "resources": -10}),  # Mengzi
-            ("Work quickly and efficiently, meeting strict deadlines to avoid penalties.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("Ensure the statue is accessible and meaningful to all, not just the elite.", {"population": +10, "resources": -10}),  # Mozi
+            ("Create something simple and harmonious, reflecting the natural world.", {"morale": +10, "resources": -10}),
+            ("Incorporate traditional symbols that honor the kingdom’s history.", {"morale": +15, "resources": -10}),
+            ("Work quickly and efficiently, meeting strict deadlines.", {"resources": +10, "morale": -15}),
+            ("Ensure the statue provides value to all, not just the elite.", {"morale": +15, "population": +5, "resources": -15}),
         ],
     },
     {
@@ -138,10 +143,10 @@ npcs = [
         "sprite_sheet": "npcs/npc_healer.png",
         "question": "Healer: The king has fallen ill, and the court is looking to you for a cure. What is your approach?",
         "choices": [
-            ("Focus on restoring the king’s balance through natural remedies and rest.", {"morale": +10, "resources": -10}),  # Laozi
-            ("Consult ancient medical texts and work collaboratively with other healers to find a cure.", {"resources": -15, "morale": +15}),  # Mengzi
-            ("Focus all available resources on the king’s recovery, regardless of the cost to the people.", {"resources": +15}),  # Lord Shang
-            ("Balance the king’s treatment with the needs of the sick among the common people.", {"population": +10, "resources": -10}),  # Mozi
+            ("Focus on restoring the king’s balance through natural remedies.", {"morale": +10, "resources": -5}),
+            ("Consult ancient medical texts and work with others to find a cure.", {"morale": +10, "resources": -5}),
+            ("Focus all available resources on the king’s recovery.", {"resources": -15, "morale": -10, "population": -10}),
+            ("Balance the king’s treatment with the needs of the other sick people.", {"morale": +10, "population": +10, "resources": -10}),
         ],
     },
     {
@@ -149,32 +154,32 @@ npcs = [
         "sprite_sheet": "npcs/npc_noble.png",
         "question": "Noble: A rival noble family is gaining influence. How should you respond?",
         "choices": [
-            ("Avoid direct confrontation; let events unfold naturally.", {"morale": +10, "resources": -10}),  # Laozi
-            ("Seek dialogue to find common ground and strengthen alliances.", {"morale": +10, "resources": -10}),  # Mengzi
-            ("Impose high taxes on merchants and use strict monitoring.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("Trade is not permitted as it perpetuates inequality.", {"resources": -15}),  # Mozi
+            ("Avoid direct confrontation; let events unfold naturally.", {"morale": +10, "resources": -5}),
+            ("Seek dialogue to find common ground and strengthen alliances.", {"morale": +15, "resources": +5}),
+            ("Undermine them through strict enforcement of laws and gain power.", {"resources": +15, "morale": -15, "population": -10}),
+            ("Work together to ensure that the people benefit.", {"morale": +10, "population": +10, "resources": +10}),
         ],
     },
     {
         "name": "Peasant",
         "sprite_sheet": "npcs/npc_peasant.png",
-        "question": "Peasant: Your harvest has failed this season. What should you do?",
+        "question": "Peasant: My harvest has failed this season. What should I do?",
         "choices": [
-            ("Accept the natural cycle and prepare for better seasons ahead.", {"morale": +10, "resources": -10}),  # Laozi
-            ("Rely on the community to share resources and support each other in this difficult time.", {"morale": +10, "resources": -15}),  # Mengzi
-            ("Work harder and find ways to meet your quotas despite the challenges.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("Advocate for equal redistribution of food from wealthier households.", {"population": +10, "resources": -10}),  # Mozi
+            ("Accept the natural cycle and prepare for better seasons ahead.", {"morale": +5, "resources": -5, "population": -10}),
+            ("Rely on the community to share resources and support each other.", {"morale": +15, "population": +5, "resources": -5}),
+            ("Work harder and find ways to meet your quotas despite the challenges.", {"resources": +15, "morale": -15, "population": +5}),
+            ("Advocate for equal redistribution of food from wealthier households.", {"morale": +10, "population": +10, "resources": -10}),
         ],
     },
     {
         "name": "Advisor",
         "sprite_sheet": "npcs/npc_advisor.png",
-        "question": "Advisor: Our kingdom has surplus resources this year. Should we invest in strengthening our military, developing public infrastructure, or preserving these resources for future uncertainty?",
+        "question": "Advisor: Our kingdom has surplus resources this year! How should we invest these resources?",
         "choices": [
-            ("Preserve the resources.", {"morale": -10, "resources": +15}),  # Laozi
-            ("Invest in public infrastructure like schools.", {"resources": -15, "morale": +15, "population": +10}),  # Mengzi
-            ("Invest in training soldiers and building defenses.", {"resources": -15, "morale": +10}),  # Lord Shang
-            ("Distribute resources equally across regions.", {"resources": -15, "morale": +15, "population": +10}),  # Mozi
+            ("Preserve the resources.", {"resources": +10, "morale": -10, "population:": -10}),
+            ("Invest in public infrastructure like schools", {"morale": +15, "population": +10, "resources": -15}),
+            ("Invest in training soldiers and building defenses", {"resources": +15, "morale": -10, "population": -10}),
+            ("Distribute resources equally across regions", {"morale": +15, "population": +10, "resources": -10}),
         ],
     },
     {
@@ -182,10 +187,10 @@ npcs = [
         "sprite_sheet": "npcs/npc_general.png",
         "question": "General: A neighboring state is amassing troops near our borders. My King, should we prepare for war?",
         "choices": [
-            ("Only act if directly attacked, avoid provoking them.", {"morale": -10, "resources": +15}),  # Laozi
-            ("Seek diplomacy and emphasize peace.", {"morale": +15, "resources": -10}),  # Mengzi
-            ("Secure borders and ensure the enemy cannot threaten us.", {"resources": -15, "morale": +5}),  # Lord Shang
-            ("Offer aid or resources to neighbor to reduce hostilities.", {"resources": -15, "morale": +15, "population": +5}),  # Mozi
+            ("Only act if directly attacked, avoid provoking them.", {"morale": +5, "resources": -5, "population": +5}),
+            ("Seek diplomacy and emphasize peace.", {"morale": +15, "resources": -10}),
+            ("Secure borders and ensure enemy cannot threaten us.", {"resources": +10, "morale": -10, "population": -10}),
+            ("Offer aid or resources to reduce hostilities", {"morale": +15, "population": +10, "resources": -10}),
         ],
     },
     {
@@ -193,32 +198,32 @@ npcs = [
         "sprite_sheet": "npcs/npc_villager.png",
         "question": "Villager: Our crops have failed, and we have no food to feed our families. My King, can the kingdom provide aid to help?",
         "choices": [
-            ("Nature has its rhythms, think of a way to adapt.", {"morale": -15, "population": -10}),  # Laozi
-            ("It is the ruler’s duty to act with benevolence, so provide food and resources.", {"resources": -15, "morale": +15, "population": +10}),  # Mengzi
-            ("Villagers can contribute labor in exchange for food.", {"resources": +10, "morale": -15}),  # Lord Shang
-            ("Divert resources from wealthier regions to provide immediate relief to villagers.", {"resources": -15, "morale": +15, "population": +10}),  # Mozi
+            ("Nature has its rhythms, think of a way to align yourself to it.", {"morale": -10, "population": -10, "resources": -5}),
+            ("It is the ruler’s duty to act with benevolence, so provide food.", {"morale": +15, "population": +10, "resources": -10}),
+            ("Villagers can contribute labor in exchange for food.", {"resources": +10, "morale": -10, "population": -10}),
+            ("Divert resources from wealthier regions to provide immediate relief.", {"morale": +15, "population": +10, "resources": -10}),
         ],
     },
     {
         "name": "Merchant",
         "sprite_sheet": "npcs/npc_merchant.png",
-        "question": "Merchant: There is a rare foreign silk that can bring much wealth to our nation, but its production exploits workers and harms the environment. My King, do we have permission to trade?",
+        "question": "Merchant: A rare foreign silk promises wealth but harms workers and the land. Shall we trade it?",
         "choices": [
-            ("Permit merchants to trade as they see fit.", {"resources": +15, "morale": -15}),  # Laozi
-            ("Set strict guidelines for trade between merchants and producers.", {"resources": +10, "morale": +10}),  # Mengzi
-            ("Impose high taxes on merchants and use strict monitoring.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("Trade is not permitted as it perpetuates inequality.", {"resources": -15}),  # Mozi
+            ("Allow merchants to trade as they see fit.", {"resources": +10, "morale": -10}),
+            ("Set strict guidelines for trade between merchants and producers.", {"morale": +15, "resources": -10}),
+            ("Impose high taxes on merchants and use strict monitoring.", {"resources": +10, "morale": -15, "population": -10}),
+            ("Trade is not permitted as it perpetuates inequality.", {"morale": +10, "resources": -10}),
         ],
     },
     {
         "name": "Scribe",
         "sprite_sheet": "npcs/npc_scribe.png",
-        "question": "Scribe: Preserving historical texts requires substantial resources. My King, should we prioritize saving these texts?",
+        "question": "Scribe: Preserving historical texts require a lot of resources. My King, should we prioritize saving these texts?",
         "choices": [
-            ("Preserve only what is essential and let go of the rest.", {"resources": -15, "morale": +10}),  # Laozi
-            ("Preserve all texts diligently as they are vital for guiding future generations.", {"resources": -15, "morale": +15}),  # Mengzi
-            ("Preserve only the texts that reinforce law and order.", {"resources": -15, "morale": +5}),  # Lord Shang
-            ("Focus on initiatives that benefit everyone, such as food and housing.", {"resources": -15, "morale": +15, "population": +10}),  # Mozi
+            ("Preserve only what is essential and let go of the rest.", {"morale": +10, "resources": -10}),
+            ("Preserve the texts diligently as they are vital for our posterity.", {"morale": +15, "resources": -10}),
+            ("Preserve only the texts that reinforce law and order.", {"resources": +10, "morale": -10, "population": -10}),
+            ("Focus resources on initiatives that benefit everyone.", {"morale": +15, "population": +10, "resources": -5}),
         ],
     },
     {
@@ -226,10 +231,10 @@ npcs = [
         "sprite_sheet": "npcs/npc_philosopher.png",
         "question": "Philosopher: Should we prioritize harmony, moral cultivation, strict governance, or universal welfare when ruling?",
         "choices": [
-            ("The purpose of ruling is to harmonize with the Way.", {"morale": +15, "resources": +10}),  # Laozi
-            ("It is important to invest in education and rituals to instill moral values.", {"resources": -15, "morale": +15}),  # Mengzi
-            ("We should enforce strict laws and punish disobedience.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("We should promote impartial care by distributing resources equally.", {"resources": -15, "morale": +15, "population": +10}),  # Mozi
+            ("The purpose of ruling is to harmonize with the Way.", {"morale": +15, "resources": +10}),
+            ("It is important to invest in education and rituals to instill morality.", {"morale": +15, "resources": -10}),
+            ("We should enforce strict laws and punish disobedience.", {"resources": +10, "morale": -5, "population": +10}),
+            ("We should promote impartial care by distributing resources equally", {"morale": +15, "population": +10, "resources": -10}),
         ],
     },
     {
@@ -237,13 +242,14 @@ npcs = [
         "sprite_sheet": "npcs/npc_blacksmith.png",
         "question": "Blacksmith: A surge in demand for weapons has strained our resources. My King, how should we proceed?",
         "choices": [
-            ("Let the market decide. Let nature take its course.", {"morale": +15, "resources": -15}),  # Laozi
-            ("Organize the blacksmiths into guilds to manage production and share the burden.", {"resources": -15, "morale": +15, "population": +10}),  # Mengzi
-            ("Increase production by extending work hours and enforcing strict quotas.", {"resources": +15, "morale": -15}),  # Lord Shang
-            ("Distribute resources equally among blacksmiths to ensure fair wages and prevent inequality.", {"population": +15, "resources": -15, "morale": +15}),  # Mozi
+            ("Let the market decide. Let nature take its course.", {"morale": +10, "resources": -10}),
+            ("Organize the blacksmiths into guilds to manage production and share the burden.", {"morale": +15, "population": +10, "resources": +5}),
+            ("Increase production by extending work hours and enforcing strict quotas.", {"resources": +10, "morale": -15, "population": +10}),
+            ("Distribute resources equally among blacksmiths to ensure fair wages and prevent inequality.", {"morale": +15, "population": +10, "resources": -10}),
         ],
     },
 ]
+
 
 # for end of game count
 laozi_points = 0
@@ -326,16 +332,14 @@ def draw_end_game_box(question, x, y, width, height):
     max_text_width = width - 20
     draw_multiline_text(question, pixel_font, WHITE, x + 10, y + 10, max_text_width)
 
-
+# draws dynamic resource bar
 def draw_resource_bar(name, x, y, value, max_value=100):
-    """Draws a visually enhanced resource bar with pixel font text."""
-
     bar_width, bar_height = 250, 20
 
-    # Background bar (outline)
+    # background bar 
     pygame.draw.rect(screen, GRAY, (x, y, bar_width, bar_height), border_radius=10)
 
-    # Dynamic foreground bar (fill)
+    # dynamic foreground bar (fill)
     fill_width = int((value / max_value) * bar_width)
     red = min(255, max(0, 255 - int(255 * value / max_value)))  # Red when low
     green = min(255, max(0, int(255 * value / max_value)))     # Green when high
@@ -343,65 +347,51 @@ def draw_resource_bar(name, x, y, value, max_value=100):
 
     pygame.draw.rect(screen, bar_color, (x, y, fill_width, bar_height), border_radius=10)
 
-    # Render pixel font text for the resource name and value
+    # renders pixel text
     text_surface = pixel_font.render(f"{name}: {value}/{max_value}", True, WHITE)
 
-    # Place text above the bar
+    # positions
     text_x = x
-    text_y = y - 15  # Position above the bar
+    text_y = y - 15  
     screen.blit(text_surface, (text_x, text_y))
 
-
+# for the sage king name
 def draw_decorative_box(text, font, color, x, y, padding, bg_color, border_color, ornament_image=None):
-    """Draw a decorative box around text with proper ornament rotation."""
-    # Render the text
     text_surface = font.render(text, True, color)
 
-    # Calculate the box dimensions with padding
+    # get dimensions
     text_width, text_height = text_surface.get_size()
     box_width = text_width + 2 * padding
     box_height = text_height + 2 * padding
     box_x = x - padding
     box_y = y - padding
 
-    # Draw the background box
+    # draw box and border
     pygame.draw.rect(screen, bg_color, (box_x, box_y, box_width, box_height), border_radius=15)
-
-    # Draw the border around the box (thinner red line)
     pygame.draw.rect(screen, border_color, (box_x, box_y, box_width, box_height), 2, border_radius=15)
 
-    # Blit optional ornaments at the corners with rotation
+    # ornament images at corners
     if ornament_image:
         ornament = pygame.image.load(ornament_image).convert_alpha()
         ornament = pygame.transform.scale(ornament, (padding, padding))
-        # Place rotated ornaments at the corners
-        screen.blit(pygame.transform.rotate(ornament, 270), (box_x+5, box_y+5))  # Top-left
-        screen.blit(pygame.transform.rotate(ornament, 180), (box_x + box_width - padding - 7, box_y +7))  # Top-right
-        screen.blit(pygame.transform.rotate(ornament, 90), (box_x + box_width - padding -10, box_y + box_height - padding -5))  # Bottom-right
-        screen.blit(ornament, (box_x + 2, box_y + box_height - padding - 8))  # Bottom-left
+        screen.blit(pygame.transform.rotate(ornament, 270), (box_x+5, box_y+5))  # top left
+        screen.blit(pygame.transform.rotate(ornament, 180), (box_x + box_width - padding - 7, box_y +7))  # top right
+        screen.blit(pygame.transform.rotate(ornament, 90), (box_x + box_width - padding -10, box_y + box_height - padding -5))  # bottom right
+        screen.blit(ornament, (box_x + 2, box_y + box_height - padding - 8))  # bottom left
 
-    # Blit the text onto the screen
     screen.blit(text_surface, (x, y))
 
 
-# Additional Game States
-STATE_GAME_OVER = 3
-
-STATE_OUT_OF_TURNS = 4
-
-# Variables for game over
-game_over_reason = ""
-
-# Function to check resource limits and game over conditions
+# checks resource limits and game over conditions
 def check_resources():
     global morale, resources, population, game_state, game_over_reason
 
-    # Cap resources at 100
+    # cap resources at 100
     morale = min(100, morale)
     resources = min(100, resources)
     population = min(100, population)
 
-    # Check for game over conditions
+    # check for game over conditions
     if resources <= 0:
         game_over_reason = "A resource shortage led to starvation. The kingdom has fallen."
         game_state = STATE_GAME_OVER
@@ -414,9 +404,7 @@ def check_resources():
 
 
 
-next_npc = False
-
-# Main game loop
+# main game loop
 running = True
 while running:
     for event in pygame.event.get():
@@ -424,31 +412,33 @@ while running:
             pygame.quit()
             sys.exit()
 
+        # start of game, switches to music and sets metrics
         if game_state == STATE_START:
             if event.type == pygame.KEYDOWN:
-                switch_music(game_music)  # Switch to game music
+                switch_music(game_music)  
                 game_state = STATE_NAME_INPUT
-            # Variables
+
             player_name = ""
             input_box = pygame.Rect(200, 300, 400, 50)
 
-            # Metrics
-            morale = 100
-            resources = 100
-            population = 100
+            # metrics
+            morale = 75
+            resources = 75
+            population = 75
 
 
         elif game_state == STATE_NAME_INPUT:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:  # Proceed to game
+                if event.key == pygame.K_RETURN:  
                     if player_name.strip() == "":
-                        player_name = "Sage King"  # Default name if none entered
+                        player_name = "Sage King"  # default name if none
                     game_state = STATE_GAMEPLAY
-                elif event.key == pygame.K_BACKSPACE:  # Remove last character
+                elif event.key == pygame.K_BACKSPACE:  
                     player_name = player_name[:-1]
-                else:  # Add typed character
+                else:  
                     player_name += event.unicode
 
+        # game play state, switches to game music and acccounts for choices
         elif game_state == STATE_GAMEPLAY:
             if not mixer.music.get_busy():
                 switch_music(game_music)
@@ -456,16 +446,16 @@ while running:
                 dialogue_sound_played = False
                 npc = npcs[current_npc_index]
                 if event.key in [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4]:
-                    choice_index = event.key - pygame.K_1  # Map key to index (0-3)
+                    choice_index = event.key - pygame.K_1  
                     if choice_index < len(npc["choices"]):
-                        # Apply choice effects
+                        # apply choice effects
                         choice = npc["choices"][choice_index]
                         effects = choice[1]
                         morale += effects.get("morale", 0)
                         resources += effects.get("resources", 0)
                         population += effects.get("population", 0)
 
-                        # Increment philosopher alignment in fixed order
+                        # increment philosopher counts
                         if choice_index == 0:
                             laozi_points += 1
                         elif choice_index == 1:
@@ -475,7 +465,7 @@ while running:
                         elif choice_index == 3:
                             mozi_points += 1
 
-                # Move to the next NPC
+                # moving on to next npc
                 npc_arrived = False
                 npc_x = -50
                 turn_count += 1
@@ -484,21 +474,21 @@ while running:
                 if game_state == STATE_GAME_OVER:
                     break
                 current_npc_index+=1
-                # Check if all turns are done
+
+                # check if all turns are done
                 if current_npc_index >= max_turns:
                     game_state = STATE_OUT_OF_TURNS
                     break
                 npc_frames = get_frames(pygame.image.load(npcs[current_npc_index]["sprite_sheet"]).convert_alpha(), 4, row=1)
 
-                
-
+        # if game over or out of turns, player can restart game or exit
         elif game_state == STATE_GAME_OVER or game_state == STATE_OUT_OF_TURNS:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_1:  # First choice
-                    # Reset game variables
-                    game_over_sound.stop()  # Stop the game-over sound
+                if event.key == pygame.K_1: 
+                    # reset game variables
+                    game_over_sound.stop() 
                     game_state = STATE_START
-                    game_over_sound_played = False  # Reset the sound flag
+                    game_over_sound_played = False  
                     end_credits_music_playing = False
                     switch_music(start_screen_music)
                     current_npc_index = 0
@@ -507,12 +497,11 @@ while running:
                     mengzi_points = 0
                     lord_shang_points = 0
                     mozi_points = 0
-                elif event.key == pygame.K_2:  # Second choice
+                # end game
+                elif event.key == pygame.K_2: 
                     running = False     
 
-
-
-    # Rendering based on game state
+    # renders based on game state
     if game_state == STATE_START:
         screen.blit(cover_background, (0, 0))
         start_text = large_pixel_font.render("PRESS ANY KEY TO CONTINUE", True, WHITE)
@@ -528,7 +517,6 @@ while running:
 
     elif game_state == STATE_GAMEPLAY:
         screen.blit(throne_background, (0, 0))
-        # title_text = large_pixel_font.render(f"Welcome, {player_name}!", True, WHITE)
         draw_decorative_box(
             f"Welcome, {player_name}",
             large_pixel_font,  # Use Chinese-style font
@@ -541,12 +529,12 @@ while running:
             ornament_image="assets/corner_ornament.png"  # Decorative ornament
         )
 
-        # Draw Resource Bars
+        # draw resource bars
         draw_resource_bar("Morale", 50, 100, morale)
         draw_resource_bar("Population", 50, 150, population)
         draw_resource_bar("Resources", 50, 200, resources)
 
-        # Animate NPC
+        # animates the npc to walk to middle of screen
         if npc_x < 200:
             npc_x += npc_speed
             if pygame.time.get_ticks() - animation_timer > FRAME_DELAY:
@@ -555,48 +543,44 @@ while running:
         else:
             npc_arrived = True
 
-        # Draw NPC
+        # draws npc
         screen.blit(npc_frames[frame_index], (npc_x, npc_y))
 
-
+        # plays dialogue sound when npc gets close
         if npc_x > 150 and not dialogue_sound_played:
                 dialogue_sound.play()
                 dialogue_sound_played = True
 
+        # renders choice box
         if npc_arrived:
             npc = npcs[current_npc_index]
             dialogue_question = npc["question"]
             dialogue_choices = [choice[0] for choice in npc["choices"]]
             draw_dialogue_box(dialogue_question, dialogue_choices, 0, SCREEN_HEIGHT - 350, SCREEN_WIDTH, 120)
 
-        # Display turn counter in the top-right corner
+        # display turn counter
         turn_counter_text = pixel_font.render(f"Turn: {current_npc_index + 1}/{max_turns}", True, WHITE)
-        turn_counter_x = SCREEN_WIDTH - turn_counter_text.get_width() - 10  # Right-align with a margin
-        turn_counter_y = 10  # Small margin from the top
+        turn_counter_x = SCREEN_WIDTH - turn_counter_text.get_width() - 10  
+        turn_counter_y = 10  
         screen.blit(turn_counter_text, (turn_counter_x, turn_counter_y))
-
-
 
     elif game_state == STATE_GAME_OVER:
         if not game_over_sound_played:
-            mixer.music.stop()  # Stop the Chinese music
-            game_over_sound.play()  # Play the game-over sound
-            game_over_sound_played = True  # Prevent replaying the sound
-        # Fill the screen with black
+            # plays game over sound if not played
+            mixer.music.stop()  
+            game_over_sound.play() 
+            game_over_sound_played = True 
         
-        # Fill the screen with black
         screen.fill(BLACK)
 
-        # Center the "GAME OVER" text
         game_over_text = larger_pixel_font.render("GAME OVER", True, RED)
         game_over_x = (SCREEN_WIDTH - game_over_text.get_width()) // 2
         game_over_y = (SCREEN_HEIGHT // 2) - 150
         screen.blit(game_over_text, (game_over_x, game_over_y))
 
-        # Use draw_multiline_text for the game over reason
-        reason_x = 50  # Set a margin for the reason text
+        reason_x = 50 
         reason_y = game_over_y + 80
-        max_text_width = SCREEN_WIDTH - 100  # Leave some margin on the sides
+        max_text_width = SCREEN_WIDTH - 100  
         draw_multiline_text(game_over_reason, pixel_font, WHITE, reason_x, reason_y, max_text_width)
 
         continue_text = pixel_font.render("Would you like to start again? (Yes - 1, No - 2)", True, WHITE)
@@ -604,10 +588,12 @@ while running:
         
     
     elif game_state == STATE_OUT_OF_TURNS:
-        if not end_credits_music_playing:  # Check if the music has already been switched
+        # switch to end credits musics
+        if not end_credits_music_playing: 
             switch_music(end_credits)
-            end_credits_music_playing = True  # Set the flag to True after switching
+            end_credits_music_playing = True  
 
+        # determines whihc philosopher screen to display at the end based on max of decisions
         if max(laozi_points, mengzi_points, lord_shang_points, mozi_points) == laozi_points:
             screen.blit(laozi_background, (0, 0))
             explanation = "Laozi's Daoism: Decisions that emphasize the Way, nonaction, and thus allowing natural harmony to guide the state will align with this path."
@@ -625,12 +611,9 @@ while running:
             explanation = "Mozi's Mohism: Decisions that are focused on universal love and impartial care will be found under this school of thought."
             dialogue_question = "You embodied the Way of Mozi with " + str(mozi_points) + " decisions."
         
-        # Draw box for explanation of school of thought
         draw_end_game_box(explanation, 0, SCREEN_HEIGHT -550, SCREEN_WIDTH, 60)
-        # Draw a black box around the end credits message
         draw_end_game_box(dialogue_question, 0, SCREEN_HEIGHT - 100, SCREEN_WIDTH, 60)
 
-        # Draw "Would you like to start again?" text
         continue_text = pixel_font.render("Would you like to start again? (Yes - 1, No - 2)", True, WHITE)
         screen.blit(continue_text, (SCREEN_WIDTH // 2 - continue_text.get_width() // 2, SCREEN_HEIGHT - 50))
  
