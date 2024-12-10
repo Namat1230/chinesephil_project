@@ -88,8 +88,8 @@ npcs = [
         "sprite_sheet": "npcs/npc_farmer.png",
         "question": "Farmer: A drought has been plaguing our nation, My King! What should we do?",
         "choices": [
-            ("Let nature take its course, the rains shall come.", {"morale": +10, "resources": -10, "population": -10}),          # Laozi's Daoism
-            ("Organize communal labor to share the burden.", {"morale": +10, "population": +10, "resources": -10}), # Mengzi's Confucianism
+            ("Let nature take its course, the rains shall come.", {"morale": +10, "resources": +5, "population": -10}),          # Laozi's Daoism
+            ("Organize communal labor to share the burden.", {"morale": +10, "population": +10, "resources": +5}), # Mengzi's Confucianism
             ("Punish those who don’t meet the quotas.", {"resources": +15, "morale": -15, "population": +5}),      # Lord Shang's Legalism
             ("Distribute resources equally.", {"morale": +15, "population": +10, "resources": -10}),               # Mozi's Mohism
         ],
@@ -99,10 +99,10 @@ npcs = [
         "sprite_sheet": "npcs/npc_priest.png",
         "question": "Priest: The temple is in ruins, and the gods have been quiet since. What should we do?",
         "choices": [
-            ("Embrace simplicity. Worship can happen under the open sky.", {"morale": +15, "resources": -10}),      
-            ("Rally the community to restore the temple to honor tradition.", {"morale": +15, "population": +10, "resources": -10}),
+            ("Embrace simplicity. Worship can happen under the open sky.", {"morale": +15, "resources": -5}),      
+            ("Rally the community to restore the temple to honor tradition.", {"morale": +15, "population": +10, "resources": -5}),
             ("Enforce a tithe from every citizen to fund the temple's restoration.", {"resources": +15, "morale": -15, "population": -10}),
-            ("Build a modest temple with shared labor and equal contributions.", {"morale": +15, "population": +10, "resources": -10}),
+            ("Build a modest temple with shared labor and equal contributions.", {"morale": +15, "population": +10, "resources": -5}),
         ],
     },
     {
@@ -113,7 +113,7 @@ npcs = [
             ("Teach students to observe nature and embrace simplicity.", {"morale": +10}), 
             ("Focus on classical texts to instill leadership and filial piety.", {"morale": +15, "resources": -5}),
             ("Prioritize practical skills like law, agriculture, and strength.", {"resources": +15, "morale": -10, "population": +10}),
-            ("Teach universal love, and practice education to foster equality.", {"morale": +10, "population": +10, "resources": -15}),
+            ("Teach universal love, and practice education to foster equality.", {"morale": +10, "population": +10, "resources": -5}),
         ],
     },
     {
@@ -121,10 +121,10 @@ npcs = [
         "sprite_sheet": "npcs/npc_soldier.png",
         "question": "Soldier: The general has tasked you with training new recruits. What should you emphasize?",
         "choices": [
-            ("Teach them to flow like water in combat, over using brute strength.", {"morale": +10, "resources": -10, "population": +5}),
+            ("Teach them to flow like water in combat, over using brute strength.", {"morale": +10, "resources": +5, "population": +5}),
             ("Instill loyalty, discipline, and moral purpose to protect the people.", {"morale": +15, "resources": -10}),
             ("Focus on strict obedience and severe punishment for mistakes.", {"resources": +10, "morale": -15, "population": -10}),
-            ("Train all equally, and prioritize defensive tactics to minimize loss.", {"morale": +10, "population": +10, "resources": -10}),
+            ("Train all equally, and prioritize defensive tactics to minimize loss.", {"morale": +10, "population": +10, "resources": -5}),
         ],
     },
     {
@@ -132,10 +132,10 @@ npcs = [
         "sprite_sheet": "npcs/npc_artisan.png",
         "question": "Artisan: A royal order has been placed for a grand statue. How should you approach the task?",
         "choices": [
-            ("Create something simple and harmonious, reflecting the natural world.", {"morale": +10, "resources": -10}),
-            ("Incorporate traditional symbols that honor the kingdom’s history.", {"morale": +15, "resources": -10}),
+            ("Create something simple and harmonious, reflecting the natural world.", {"morale": +10, "resources": -5}),
+            ("Incorporate traditional symbols that honor the kingdom’s history.", {"morale": +15, "resources": -5}),
             ("Work quickly and efficiently, meeting strict deadlines.", {"resources": +10, "morale": -15}),
-            ("Ensure the statue provides value to all, not just the elite.", {"morale": +15, "population": +5, "resources": -15}),
+            ("Ensure the statue provides value to all, not just the elite.", {"morale": +15, "population": +5, "resources": -10}),
         ],
     },
     {
@@ -143,8 +143,8 @@ npcs = [
         "sprite_sheet": "npcs/npc_healer.png",
         "question": "Healer: The king has fallen ill, and the court is looking to you for a cure. What is your approach?",
         "choices": [
-            ("Focus on restoring the king’s balance through natural remedies.", {"morale": +10, "resources": -5}),
-            ("Consult ancient medical texts and work with others to find a cure.", {"morale": +10, "resources": -5}),
+            ("Focus on restoring the king’s balance through natural remedies.", {"morale": +10, "resources": +5}),
+            ("Consult ancient medical texts and work with others to find a cure.", {"morale": +10, "resources": +5}),
             ("Focus all available resources on the king’s recovery.", {"resources": -15, "morale": -10, "population": -10}),
             ("Balance the king’s treatment with the needs of the other sick people.", {"morale": +10, "population": +10, "resources": -10}),
         ],
@@ -154,8 +154,8 @@ npcs = [
         "sprite_sheet": "npcs/npc_noble.png",
         "question": "Noble: A rival noble family is gaining influence. How should you respond?",
         "choices": [
-            ("Avoid direct confrontation; let events unfold naturally.", {"morale": +10, "resources": -5}),
-            ("Seek dialogue to find common ground and strengthen alliances.", {"morale": +15, "resources": +5}),
+            ("Avoid direct confrontation; let events unfold naturally.", {"morale": +10, "resources": +10}),
+            ("Seek dialogue to find common ground and strengthen alliances.", {"morale": +15, "resources": +10}),
             ("Undermine them through strict enforcement of laws and gain power.", {"resources": +15, "morale": -15, "population": -10}),
             ("Work together to ensure that the people benefit.", {"morale": +10, "population": +10, "resources": +10}),
         ],
@@ -176,8 +176,8 @@ npcs = [
         "sprite_sheet": "npcs/npc_advisor.png",
         "question": "Advisor: Our kingdom has surplus resources this year! How should we invest these resources?",
         "choices": [
-            ("Preserve the resources.", {"resources": +10, "morale": -10, "population:": -10}),
-            ("Invest in public infrastructure like schools", {"morale": +15, "population": +10, "resources": -15}),
+            ("Preserve the resources.", {"resources": +10, "morale": -10, "population:": -10,  "resources": +10}),
+            ("Invest in public infrastructure like schools", {"morale": +15, "population": +10, "resources": -10}),
             ("Invest in training soldiers and building defenses", {"resources": +15, "morale": -10, "population": -10}),
             ("Distribute resources equally across regions", {"morale": +15, "population": +10, "resources": -10}),
         ],
@@ -198,10 +198,10 @@ npcs = [
         "sprite_sheet": "npcs/npc_villager.png",
         "question": "Villager: Our crops have failed, and we have no food to feed our families. My King, can the kingdom provide aid to help?",
         "choices": [
-            ("Nature has its rhythms, think of a way to align yourself to it.", {"morale": -10, "population": -10, "resources": -5}),
+            ("Nature has its rhythms, think of a way to align yourself to it.", {"morale": -10, "population": -10}),
             ("It is the ruler’s duty to act with benevolence, so provide food.", {"morale": +15, "population": +10, "resources": -10}),
             ("Villagers can contribute labor in exchange for food.", {"resources": +10, "morale": -10, "population": -10}),
-            ("Divert resources from wealthier regions to provide immediate relief.", {"morale": +15, "population": +10, "resources": -10}),
+            ("Divert resources from wealthier regions to provide immediate relief.", {"morale": +15, "population": +10, "resources": -5}),
         ],
     },
     {
@@ -210,7 +210,7 @@ npcs = [
         "question": "Merchant: A rare foreign silk promises wealth but harms workers and the land. Shall we trade it?",
         "choices": [
             ("Allow merchants to trade as they see fit.", {"resources": +10, "morale": -10}),
-            ("Set strict guidelines for trade between merchants and producers.", {"morale": +15, "resources": -10}),
+            ("Set strict guidelines for trade between merchants and producers.", {"morale": +15, "resources": -5}),
             ("Impose high taxes on merchants and use strict monitoring.", {"resources": +10, "morale": -15, "population": -10}),
             ("Trade is not permitted as it perpetuates inequality.", {"morale": +10, "resources": -10}),
         ],
@@ -220,8 +220,8 @@ npcs = [
         "sprite_sheet": "npcs/npc_scribe.png",
         "question": "Scribe: Preserving historical texts require a lot of resources. My King, should we prioritize saving these texts?",
         "choices": [
-            ("Preserve only what is essential and let go of the rest.", {"morale": +10, "resources": -10}),
-            ("Preserve the texts diligently as they are vital for our posterity.", {"morale": +15, "resources": -10}),
+            ("Preserve only what is essential and let go of the rest.", {"morale": +10, "resources": -5}),
+            ("Preserve the texts diligently as they are vital for our posterity.", {"morale": +15, "resources": +10}),
             ("Preserve only the texts that reinforce law and order.", {"resources": +10, "morale": -10, "population": -10}),
             ("Focus resources on initiatives that benefit everyone.", {"morale": +15, "population": +10, "resources": -5}),
         ],
@@ -245,7 +245,7 @@ npcs = [
             ("Let the market decide. Let nature take its course.", {"morale": +10, "resources": -10}),
             ("Organize the blacksmiths into guilds to manage production and share the burden.", {"morale": +15, "population": +10, "resources": +5}),
             ("Increase production by extending work hours and enforcing strict quotas.", {"resources": +10, "morale": -15, "population": +10}),
-            ("Distribute resources equally among blacksmiths to ensure fair wages and prevent inequality.", {"morale": +15, "population": +10, "resources": -10}),
+            ("Distribute resources equally among blacksmiths to ensure fair wages and prevent inequality.", {"morale": +15, "population": +10, "resources": -5}),
         ],
     },
 ]
